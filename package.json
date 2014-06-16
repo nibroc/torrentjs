@@ -1,0 +1,11 @@
+{
+	"name": "torrentjs",
+	"private": true,
+	"version": "0.0.1",
+	"scripts": {
+		"start": "node torrent.js"
+	},
+	"dependencies": {
+		"nodetest": "*"
+	}
+}
