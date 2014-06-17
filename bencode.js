@@ -1,3 +1,5 @@
+var Torrent = require('./Torrent.js');
+
 var Range = function(start, end) {
 	this.start = start;
 	this.end = end;
@@ -192,59 +194,25 @@ function decode(str) {
 	}
 }
 
-function encodeUtf8(s) {
-	return unescape(encodeURIComponent(s));
-}
-
-function decodeUtf8(s) {
-	return decodeURIComponent(escape(s));
-}
-
-function TorrentFile(torrentData) {
-	/*{ announce: 'http://localhost:8080/tracker.php',
-  'created by': 'qBittorrent v3.1.9.2',
-  'creation date': 1402871752,
-  info:
-   { files: [ [Object], [Object], [Object] ],
-     name: 'test',
-     'piece length': 32768,
-     pieces: 'LJR\u001c_\u0015Qv\f\u001d{DkiV\u0017\u0019\\>4E\u0013lO2u3\u0016YhhOir\t\nb\u0003s<\u001frq:c/^P}u\u0012\
-\Cg;*eqQsL8h\f\u00024e\u0006nyHG+7\\\'}ZEn\u001dp)A9W\u0014nZ\u0018k7V!C\f\u001a \u0002\u0010t!\u0017[\u0014,\f\u0013?Dy
-Ei\u0012V[N\u001dzy|\u0018m\'4\u001d\u000f-\u0018p+P\u0019>W~\u0004^>\u0015\u000e=\r\u000eOWPh%_r\u001ag&B?0~-/\u0015|\n
-Y[\u0006i\u0003O5dT+Ka\u001aL1*.K\u0013{>hUQ/J\u0011DJS\u0006\t:\u000f\'XoL?NuC\u001b\u0003J}5y\u0013||+\u001b5WEo' },
-  'url-list': '' }*/
-	for (var key in torrentData) {
-		if (torrentData.hasOwnProperty(key)) {
-			this[key] = torrentData[key];
-		}
-	}
-}
-
-TorrentFile.prototype.announceUrl = function() {
-	return this['announce'];
-}
-
-TorrentFile.prototype.createdBy = function() {
-	return this['created by'];
-};
-
-TorrentFile.prototype.creationDate = function() {
-	return new Date(this['creation date']);
-};
-
-
-
 function parseTorrent(str) {
-	return new TorrentFile(decode(str));
+	return new Torrent(decode(str));
+}
+
+function stringFromBuffer(buffer) {
+	var str = "";
+	for (var i = 0; i < buffer.length; ++i) {
+		str += String.fromCharCode(buffer.readUInt8(i));
+	}
+	return str;
 }
 
 function parseTorrentFromFile(filepath, callback) {
-	require('fs').readFile(filepath, {encoding: 'ascii'}, function parseTorrentCb(err, contents) {
+	require('fs').readFile(filepath, function parseTorrentCb(err, contents) {
 		if (err) {
 			callback(err);
 		} else {
 			try {
-				var torrent = parseTorrent(contents)
+				var torrent = parseTorrent(stringFromBuffer(contents));
 				callback(torrent instanceof Error ? torrent : null, torrent);
 			} catch (e) {
 				callback(e, null);
