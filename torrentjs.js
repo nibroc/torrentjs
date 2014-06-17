@@ -25,11 +25,15 @@ var server = Http.createServer(function(request, response) {
 		return;
 	}
 	
-	var announce = Announce.fromUrl(request.url);
-	if (announce instanceof Error) {
-		response.end(Bencode.encode("error parsing request -- " + announce), "utf8");
-	} else {
+	try {
+		var announce = Announce.fromWebRequest(request);
+		console.log("Handled announce from " + announce.hostAddress() + ":" + announce.hostPort());
 		response.end(Bencode.encode(manager.announce(announce)), "utf8");
+	} catch (err) {
+		console.log("Failed to handle announce from " 
+		            + request.socket.remoteAddress + ":" + request.socket.remotePort
+		            + ". Error: " + err + err.stack);
+		response.end(Bencode.encode("error parsing request -- " + err), "utf8");
 	}
 });
 
